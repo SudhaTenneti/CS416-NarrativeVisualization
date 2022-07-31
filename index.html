@@ -1,0 +1,445 @@
+
+<meta charset="utf-8">
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js">
+  </script>
+
+ 
+</script>
+<script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+<style>
+  body{
+    background-color: lightgrey;
+ }
+
+ svg {
+    background-color: lightgrey;
+    font-family: 'Tahoma';
+ }
+
+.annotation-note-title, text.title {
+  font-weight: bold;
+}
+
+text.title {
+  font-size: 2.5em;
+  
+}
+.moveLeft{
+  margin-left:33%;
+  float:left
+}
+.header{
+
+  font:large;
+  font-size: 2em;
+  font-family: Tahoma;
+  color: green;
+  font-weight: bold
+}
+.headerLarge{
+
+  font:x-large;
+  font-size: 4em;
+  font-family: Tahoma;
+  color: green;
+ 
+}
+.message{
+
+  font:large;
+  font-size: large;
+  font-family: Tahoma;
+  padding-right:50%;
+  font-weight: none
+  color: black
+
+}
+</style>
+<!-- Create a div where the graph will take place -->
+
+<div id="my_dataviz" class="moveLeft" >
+  
+</div>
+<div class="moveLeft">
+<button type="button" onclick="previous()" >Previous</button>
+<button type="button" onclick="next()" >Next</button>
+<p id="currentPage" >1/3</p>
+</div>
+<script>
+    var currentPage = 1
+
+    // set the dimensions and margins of the graph
+    var margin = {top: 10, right: 30, bottom: 30, left: 60},
+        width = 660 - margin.left - margin.right,
+        height = 600 - margin.top - margin.bottom;
+    
+    // append the svg object to the body of the page
+    
+    
+    //Read the data
+    buildHeadSection()
+    scene1()
+    var next = function(){
+       if(currentPage < 3){
+          currentPage = currentPage+1
+          updateCurrentPage(currentPage)
+          d3.select("#my_dataviz").html("")
+          buildHeadSection()
+          buildGraph(currentPage)
+       }
+    }
+    var previous = function(){
+       if(currentPage > 1){
+          currentPage = currentPage - 1
+          updateCurrentPage(currentPage)
+          d3.select("#my_dataviz").html("")
+          buildHeadSection()
+          buildGraph(currentPage)
+       }
+    }
+    function buildHeadSection(){
+      d3.select("#my_dataviz")
+      .append("p")
+      .attr("class","headerLarge")
+      .text("Economy of Canada")
+      d3.select("#my_dataviz")
+      .append("p")
+      .attr("class","message")
+      .text("Canada's highly developed economy is currently ranked as the 9th largest economy in the world with a gross domestic product (GDP) of $1.64 trillion USD. The country however has gone through some difficult times in the past 20 years including two recessions, high inflation rates, a tight labor market, challenges with unemployment, and slower productivity growth. Scroll through the visuals below for a snapshot of how major economic indicators changed over the last 20 years making Canada the economic powerhouse it currently is.")
+    }
+	
+    function buildGraph(number){
+      if(number === 1){
+        scene1()
+      }else if(number === 2){
+        scene2()
+      }else if(number === 3){
+        d3.select("#my_dataviz")
+        .append("p")
+        .text("Population Size in Canada between 1996-2016")
+        .attr("class","header")
+        d3.select("#my_dataviz")
+        .append("p")
+        .attr("class","message")
+        .text("Select an economic indicator in the drop-down to see the trend in the graph")
+        dynamicGraph("Population_Size")
+        buildCombobox("Population_Size")
+      }
+      
+    }
+    function updateCurrentPage(currentPage){
+      d3.select("#currentPage")
+      .text(currentPage + "/3")
+    }
+	
+    function buildCombobox(value){
+
+      let items = [
+        {value:"Exports_Percent_of_GDP",
+        text: "Exports as a percentage of GDP"},
+        {value:"Economic_Growth",
+        text: "Economic Growth"},
+        {value:"Percent_Urban_Population",
+        text: "Percentage of Urban Population"},
+        
+      ]
+      
+
+      d3.select("#my_dataviz")
+      .append("select")
+      .attr("id","graphType")
+      .attr("onchange","selectGraph()")
+
+      .append("option")
+      .attr("value","Population_Size")
+      .text("Population Size")
+
+      for(item of items){
+        d3.select("#graphType")
+        .append("option")
+        .attr("value",item.value)
+        .text(item.text)
+
+        if(item.value === value){
+          d3.select(`option[value='${value}']`)
+          .attr("selected",true)
+        }
+      }
+      
+    }
+    function selectGraph(){
+      
+      var yAxis = document.getElementById("graphType").value;
+      var t = document.getElementById("graphType");
+      selectedText = t.options[t.selectedIndex].text;
+
+      d3.select("#my_dataviz").html("")
+      buildHeadSection()
+
+
+      d3.select("#my_dataviz")
+      .append("p")
+      .text(selectedText + " in Canada between 1996-2016")
+      .attr("class","header")
+      d3.select("#my_dataviz")
+      .append("p")
+      .attr("class","message")
+      .text("Select an economic indicator in the drop-down to see the trend in the graph");
+	  
+      dynamicGraph(yAxis)
+      
+      buildCombobox(yAxis)
+      
+  }
+    function scene1(){
+      d3.select("#my_dataviz")
+      .append("p")
+      .text("Unemployment rate in Canada between 1996-2016")
+      .attr("class","header")
+      d3.select("#my_dataviz")
+      .append("p")
+      .attr("class","message")
+      .text("Unemployment rates in Canda were intially high in the 1990s since Canada was recovering from a recession but trended downwards till 2008 until the onset of another recession in 2009.")
+      
+
+      var svg = d3.select("#my_dataviz")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+			  
+      d3.csv("https://raw.githubusercontent.com/SudhaTenneti/CS416-NarrativeVisualization/main/New_GlobalEconomy_Canada_dataset.csv", function(data) {
+
+	    var x = d3.scaleLinear()
+          .domain([1995,2016])
+          .range([ 0, width ]);
+		  
+		svg.append("g")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(d3.axisBottom(x).tickFormat(d3.format("d")));
+
+		// Add Y axis
+		var y = d3.scaleLinear()
+		  .domain([6, d3.max(data, function(d) { return +d.Unemployment_Rate; })])
+		  .range([ height, 0 ]);
+		  
+		svg.append("g")
+		  .call(d3.axisLeft(y));		  
+      
+        // Linear Graph
+        svg.append("path")
+		  .datum(data)
+		  .attr("fill", "none")
+		  .attr("stroke", "blue")
+		  .attr("stroke-width", 2)
+		  .attr("d", d3.line()
+			.x(function(d) { return x(d.Year) })
+			.y(function(d) { return y(d.Unemployment_Rate) })
+			);
+			
+			
+			
+		 const annotations = [
+				{
+				  note: {
+					label: "",
+					title: "Unemployment Rate was at its peak in 1996 at 9.62%",
+					wrap: 150
+				  },
+				  connector: {
+					end: "dot",
+					type: "type",
+					//can also add a curve type, e.g. curve: d3.curveStep
+					points: [[100, 14],[190, 52]]
+				  },
+				  x: 32,
+				  y: 3,
+				  dy: 47,
+				  dx: 152
+				},
+				{
+				  note: {
+					label: "",
+					title: "Unemployment Rate spiked during 2008 Great Recession",
+					wrap: 150
+				  },
+				  connector: {
+					end: "dot",
+					type: "type",
+					//can also add a curve type, e.g. curve: d3.curveStep
+					points: [[100, 14],[190, 52]]
+				  },
+				  x: 385,
+				  y: 200,
+				  dy: 47,
+				  dx: 122
+				}
+               ].map(function(d){ d.color = "#E8336D"; return d})
+        
+                const makeAnnotations = d3.annotation()
+                  .type(d3.annotationLabel)
+                  .annotations(annotations)
+                
+                svg.append("g")
+                  .attr("class", "annotation-group")
+                  .attr('id',"alexcat")
+                  .call(makeAnnotations)
+		});
+    }
+	
+	
+    function scene2(){
+      d3.select("#my_dataviz")
+      .append("p")
+      .text("Inflation rate in Canada between 1996-2016")
+      .attr("class","header")
+       d3.select("#my_dataviz")
+      .append("p")
+      .attr("class","message")
+      .text("Canada's inflation has been averaging around 2% in the past 20 years (1996-2016) mostly due to Bank of Canada's inflation rate policy. Inflation dropped considerably in 2009 to 0.3%  due to the Global Financial Crisis and then slowly rising to 2.9 % in 2011 due increase in fuel oil and electricity prices.")
+      
+
+      var svg = d3.select("#my_dataviz")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+			  
+      d3.csv("https://raw.githubusercontent.com/SudhaTenneti/CS416-NarrativeVisualization/main/New_GlobalEconomy_Canada_dataset.csv", function(data) {
+
+	    var x = d3.scaleLinear()
+          .domain([1995,2016])
+          .range([ 0, width ]);
+		  
+		svg.append("g")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(d3.axisBottom(x).tickFormat(d3.format("d")));
+
+		// Add Y axis
+		var y = d3.scaleLinear()
+		  .domain([0, d3.max(data, function(d) { return +d.Inflation; })])
+		  .range([ height, 0 ]);
+		  
+		svg.append("g")
+		  .call(d3.axisLeft(y));		  
+      
+        // Linear Graph
+        svg.append("path")
+		  .datum(data)
+		  .attr("fill", "none")
+		  .attr("stroke", "blue")
+		  .attr("stroke-width", 2)
+		  .attr("d", d3.line()
+			.x(function(d) { return x(d.Year) })
+			.y(function(d) { return y(d.Inflation) })
+			);
+			
+		 const annotations = [
+				{
+				  note: {
+					label: "",
+					title: "Highest Inflation in 2011",
+					wrap: 150
+				  },
+				  connector: {
+					end: "dot",
+					type: "type",
+					//can also add a curve type, e.g. curve: d3.curveStep
+					points: [[100, 14],[190, 52]]
+				  },
+				  x: 435,
+				  y: 3,
+				  dy: 47,
+				  dx: 92
+				},
+				{
+				  note: {
+					label: "",
+					title: "Lowest Inflation before Great Recession",
+					wrap: 150
+				  },
+				  connector: {
+					end: "dot",
+					type: "type",
+					//can also add a curve type, e.g. curve: d3.curveStep
+					points: [[100, 14],[190, 52]]
+				  },
+				  x: 385,
+				  y: 500,
+				  dy: 0,
+				  dx: 92
+				}
+               ].map(function(d){ d.color = "#E8336D"; return d})
+        
+                const makeAnnotations = d3.annotation()
+                  .type(d3.annotationLabel)
+                  .annotations(annotations)
+                
+                svg.append("g")
+                  .attr("class", "annotation-group")
+                  .attr('id',"alexcat")
+                  .call(makeAnnotations)
+		});
+    }
+	
+	
+    function dynamicGraph(yAxis){
+      var svg = d3.select("#my_dataviz")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .style("float","left")
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+        d3.csv("https://raw.githubusercontent.com/SudhaTenneti/CS416-NarrativeVisualization/main/New_GlobalEconomy_Canada_dataset.csv", function(data) {
+
+        let highest = 0
+        let lowest = 100
+        for(item of data){
+            if(item[yAxis] > highest){
+                highest = item[yAxis]
+            }
+            if(item[yAxis] < lowest){
+                lowest = item[yAxis]
+            }
+        }
+
+        // Add X axis
+        var x = d3.scaleLinear()
+          .domain([1995,2016])
+          .range([ 0, width ]);
+        svg.append("g")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x).tickFormat(d3.format("d")));
+        
+        // Add Y axis
+        var y = d3.scaleLinear()
+            .domain([lowest, highest])
+            .range([ height, 0]);
+        svg.append("g")
+            .call(d3.axisLeft(y));
+        
+        // Add dots
+        svg.append('g')
+            .selectAll("dot")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) { return x(d.Year) } )
+            .attr("cy", function (d) { return y(parseFloat(d[yAxis])) } )
+            .attr("r", 8)
+            .style("fill", "blue")
+        })
+
+             
+
+    }
+
+    </script>
